@@ -5,7 +5,7 @@ import { getRandomPrompt } from "../utils";
 import { FormField, Loader } from "../components";
 
 const CreatePost = () => {
-  const navigate = useState();
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     name: "",
     prompt: "",
@@ -13,8 +13,80 @@ const CreatePost = () => {
   });
   const [generatingImg, setGeneratingImg] = useState(false);
   const [loading, setLoading] = useState(false);
-  const generateImage = () => {};
-  const handleSubmit = () => {};
+
+  const generateImage = async () => {
+    if (form.prompt) {
+      try {
+        setGeneratingImg(true);
+        const response = await fetch("http://localhost:8080/api/v1/dalle", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ prompt: form.prompt }),
+        });
+        const data = await response.json();
+        setForm({ ...form, photo: `data:image/jpeg;base64, ${data.photo}` });
+      } catch (error) {
+        alert(error);
+      } finally {
+        setGeneratingImg(false);
+      }
+    } else {
+      alert("Please enter a prompt");
+    }
+  };
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   if (form.prompt && form.photo) {
+  //     setLoading(true);
+
+  //     try {
+  //       const response = await fetch(" http://localhost:8080/api/v1/post", {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({ ...form }),
+  //       });
+  //       await response.json();
+  //       navigate("/");
+  //     } catch (error) {
+  //       alert(error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   } else {
+  //     alert("Please enter a prompt and generate an image");
+  //   }
+  // };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (form.prompt && form.photo) {
+      setLoading(true);
+      try {
+        const response = await fetch("http://localhost:8080/api/v1/post", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ...form }),
+        });
+
+        await response.json();
+        navigate("/");
+      } catch (err) {
+        alert(err);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      alert("Please generate an image with proper details");
+    }
+  };
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -33,7 +105,7 @@ const CreatePost = () => {
           and share them with the community.
         </p>
       </div>
-      <form action="" className="mt-16 max-w-3xl" onSubmit={handleSubmit}>
+      {/* <form action="" className="mt-16 max-w-3xl" onSubmit={handleSubmit}>
         <div className="flex flex-col gap-5">
           <FormField
             labelName="Your name"
@@ -42,12 +114,33 @@ const CreatePost = () => {
             placeholder="John Doe"
             value={form.name}
             handleChange={handleChange}
+          /> */}
+
+      <form className="mt-16 max-w-3xl" onSubmit={handleSubmit}>
+        <div className="flex flex-col gap-5">
+          <FormField
+            labelName="Your Name"
+            type="text"
+            name="name"
+            placeholder="Ex., john doe"
+            value={form.name}
+            handleChange={handleChange}
           />
+          {/* <FormField
+            labelName="Prompt"
+            type="text"
+            name="prompt"
+            placeholder="a pencil and watercolor drawing of a bright city in the future with flying cars"
+            value={form.prompt}
+            handleChange={handleChange}
+            isSurpriseMe
+            handleSurpriseMe={handleSurpriseMe}
+          /> */}
           <FormField
             labelName="Prompt"
             type="text"
-            name="name"
-            placeholder="a pencil and watercolor drawing of a bright city in the future with flying cars"
+            name="prompt"
+            placeholder="An Impressionist oil painting of sunflowers in a purple vase…"
             value={form.prompt}
             handleChange={handleChange}
             isSurpriseMe
